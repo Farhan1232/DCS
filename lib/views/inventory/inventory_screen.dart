@@ -3,19 +3,22 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:data_table_2/data_table_2.dart';
+import 'package:inventory_management_app/Controller/LoginController.dart';
 import 'package:inventory_management_app/Controller/stock_controller.dart';
-import 'package:inventory_management_app/views/stock/stock_in_screen.dart';
-import 'package:inventory_management_app/views/stock/stock_out_screen.dart';
+import 'package:inventory_management_app/views/Authentication/AdminAccessScreen.dart';
 
-class InventoryScreen extends StatefulWidget {
-  const InventoryScreen({super.key});
+class DashboardScreen extends StatefulWidget {
+  final String role; // ✅ role comes from MainScreen
+
+  const DashboardScreen({super.key, required this.role});
 
   @override
-  State<InventoryScreen> createState() => _InventoryScreenState();
+  State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-class _InventoryScreenState extends State<InventoryScreen> {
+class _DashboardScreenState extends State<DashboardScreen> {
   final StockController controller = Get.put(StockController());
+   final LoginController loginController = Get.put(LoginController());
 
   final RxString selectedWarehouse = "Warehouse".obs;
   final RxString selectedView = "View".obs;
@@ -30,19 +33,48 @@ class _InventoryScreenState extends State<InventoryScreen> {
       builder: (_, __) {
         return Scaffold(
           backgroundColor: Colors.grey[50],
-          appBar: AppBar(
-            title: const Text("Dashboard"),
-            centerTitle: true,
-            flexibleSpace: Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Colors.teal, Colors.green],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-              ),
-            ),
+         appBar: AppBar(
+  title: const Text("Dashboard"),
+  centerTitle: true,
+  flexibleSpace: Container(
+    decoration: const BoxDecoration(
+      gradient: LinearGradient(
+        colors: [Colors.teal, Colors.green],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ),
+    ),
+  ),
+  actions: [
+    if (widget.role == "admin") // ✅ Show only if admin
+      IconButton(
+        icon: const Icon(Icons.admin_panel_settings,color: Color.fromARGB(255, 194, 247, 49),),
+        tooltip: "Admin Access",
+        onPressed: () {
+          Get.to(() => AdminAccessScreen());
+        },
+      ),
+    
+      IconButton(
+            icon: Icon(Icons.logout,color: Colors.red,),
+            tooltip: "Logout",
+            onPressed: () {
+              // Optional: confirmation dialog before logout
+              Get.defaultDialog(
+                title: "Logout",
+                middleText: "Are you sure you want to logout?",
+                textCancel: "No",
+                textConfirm: "Yes",
+                confirmTextColor: Colors.white,
+                onConfirm: () {
+                  loginController.logout(); // ✅ call logout from your controller
+                },
+              );
+            },
           ),
+  ],
+),
+
           body: Padding(
             padding: EdgeInsets.all(8.w),
             child: Column(
@@ -125,7 +157,6 @@ class _InventoryScreenState extends State<InventoryScreen> {
                               : categoryName.toLowerCase() ==
                                   selectedCategory.value.toLowerCase();
 
-                      // ✅ Apply all filters together
                       return matchesWarehouse &&
                           matchesProduct &&
                           matchesCategory;
@@ -256,6 +287,8 @@ class _InventoryScreenState extends State<InventoryScreen> {
               ],
             ),
           ),
+
+          
         );
       },
     );

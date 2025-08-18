@@ -16,37 +16,40 @@ class ReceivablesDashboardScreen extends StatelessWidget {
       builder: (_, __) {
         return Scaffold(
           backgroundColor: Colors.grey[100],
-         appBar: AppBar(
-  backgroundColor: Colors.teal,
-  elevation: 4,
-  title: Text(
-    'Receivables',
-    style: TextStyle(
-      fontSize: 20.sp,
-      fontWeight: FontWeight.bold,
-      color: Colors.white,
-    ),
-  ),
-  actions: [
-    IconButton(
-      icon: Icon(Icons.add, size: 24.sp, color: Colors.white),
-      onPressed: () => Get.to(() => AddReceivableScreen()),
-    ),
-    IconButton(
-      icon: Icon(Icons.check_circle, size: 24.sp, color: Colors.white),
-      onPressed: () => Get.to(() => ClosedReceivablesScreen()),
-    ),
-  ],
-),
-
+          appBar: AppBar(
+            backgroundColor: Colors.teal,
+            elevation: 4,
+            title: Text(
+              'Receivables',
+              style: TextStyle(
+                fontSize: 20.sp,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            actions: [
+              IconButton(
+                icon: Icon(Icons.add, size: 24.sp, color: Colors.white),
+                onPressed: () => Get.to(() => AddReceivableScreen()),
+              ),
+              IconButton(
+                icon: Icon(Icons.check_circle, size: 24.sp, color: Colors.white),
+                onPressed: () => Get.to(() => ClosedReceivablesScreen()),
+              ),
+            ],
+          ),
           body: Padding(
             padding: EdgeInsets.all(12.w),
             child: Obx(() {
-              final list = ctrl.receivables;
+              // 🔹 Show only "open" receivables
+              final list = ctrl.receivables
+                  .where((r) => r.status.toLowerCase() == "open")
+                  .toList();
+
               if (list.isEmpty) {
                 return Center(
                   child: Text(
-                    'No Receivables',
+                    'No Open Receivables',
                     style: TextStyle(
                       fontSize: 16.sp,
                       fontWeight: FontWeight.w500,
@@ -55,6 +58,7 @@ class ReceivablesDashboardScreen extends StatelessWidget {
                   ),
                 );
               }
+
               return ListView.separated(
                 itemCount: list.length,
                 separatorBuilder: (_, __) => SizedBox(height: 10.h),
@@ -84,7 +88,6 @@ class ReceivablesDashboardScreen extends StatelessWidget {
                       ),
                       child: Row(
                         children: [
-                          // Leading Circle Avatar
                           CircleAvatar(
                             radius: 24.r,
                             backgroundColor: Colors.teal.withOpacity(0.15),
@@ -95,8 +98,6 @@ class ReceivablesDashboardScreen extends StatelessWidget {
                             ),
                           ),
                           SizedBox(width: 12.w),
-
-                          // Text Info
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -111,7 +112,7 @@ class ReceivablesDashboardScreen extends StatelessWidget {
                                 ),
                                 SizedBox(height: 4.h),
                                 Text(
-                                  'Outstanding: ₹ ${r.outstanding.toStringAsFixed(2)}',
+                                  'Outstanding: د.إ ${r.outstanding.toStringAsFixed(2)}',
                                   style: TextStyle(
                                     fontSize: 14.sp,
                                     color: Colors.grey[700],
@@ -128,26 +129,20 @@ class ReceivablesDashboardScreen extends StatelessWidget {
                               ],
                             ),
                           ),
-
-                          // Status Badge
                           Container(
                             padding: EdgeInsets.symmetric(
                               horizontal: 10.w,
                               vertical: 5.h,
                             ),
                             decoration: BoxDecoration(
-                              color: r.status.toLowerCase() == 'paid'
-                                  ? Colors.green.withOpacity(0.15)
-                                  : Colors.orange.withOpacity(0.15),
+                              color: Colors.orange.withOpacity(0.15),
                               borderRadius: BorderRadius.circular(8.r),
                             ),
                             child: Text(
                               r.status,
                               style: TextStyle(
                                 fontSize: 12.sp,
-                                color: r.status.toLowerCase() == 'paid'
-                                    ? Colors.green
-                                    : Colors.orange,
+                                color: Colors.orange,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),

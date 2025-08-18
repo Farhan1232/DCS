@@ -26,21 +26,21 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: "AIzaSyC8rmCrnx1RznyhgIROqHBkZ1u0TNw0GCI",
-    appId: "1:81248571391:web:41cb880a150ece2ddaa1ca",
-    messagingSenderId: "81248571391",
-    projectId: "verification-ae9dd",
-    authDomain: "verification-ae9dd.firebaseapp.com",
-    storageBucket: "verification-ae9dd.firebasestorage.app",
-    measurementId: "G-79K0TW565P",
+  apiKey: "AIzaSyARBT8ENh1UsFL9RL4SaNQAknsCjn5-drQ",
+  authDomain: "inventorysystem-4d9d4.firebaseapp.com",
+  projectId: "inventorysystem-4d9d4",
+  storageBucket: "inventorysystem-4d9d4.firebasestorage.app",
+  messagingSenderId: "66994658980",
+  appId: "1:66994658980:web:9a2f2097422b91f0855031",
+  measurementId: "G-S4CZ9LLHQS"
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: "AIzaSyDZiW00yRhjIENzEUXN8KPmc9w-_-Rakgw",
-    appId: "81248571391",
-    messagingSenderId: "1:81248571391:android:cc0fc55a38f08f74daa1ca",
-    projectId: "verification-ae9dd",
-    storageBucket: "verification-ae9dd.firebasestorage.app",
+    apiKey: "AIzaSyAPyc6SKTYOiOrlA7FbVKlf0yrc9rgwSH8",
+    appId: "66994658980",
+    messagingSenderId: "1:66994658980:android:fe762e9ec7a271b5855031",
+    projectId: "inventorysystem-4d9d4",
+    storageBucket: "inventorysystem-4d9d4.firebasestorage.app",
   );
 
   static const FirebaseOptions ios = FirebaseOptions(

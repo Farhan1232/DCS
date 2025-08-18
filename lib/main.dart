@@ -7,6 +7,7 @@ import 'package:inventory_management_app/Controller/stock_controller.dart';
 import 'package:inventory_management_app/firebase_options.dart';
 import 'package:inventory_management_app/services/firestore_service.dart';
 import 'package:inventory_management_app/services/local_storage.dart';
+import 'package:inventory_management_app/views/Authentication/login.dart';
 import 'package:inventory_management_app/views/bottomNavBar/MainScreen.dart';
 
 
@@ -43,7 +44,7 @@ class MyApp extends StatelessWidget {
         return GetMaterialApp(
           title: 'IMS App',
           debugShowCheckedModeBanner: false,
-          home: MainScreen(),
+          home: LoginPage(),
         );
       },
     );

@@ -12,29 +12,42 @@ class StockInScreen extends StatelessWidget {
 
   StockInScreen({super.key});
 
-  void addStockCard() {
-    if (controller.selectedProductId.value == null ||
-        controller.selectedWarehouseId.value == null ||
-        costController.text.isEmpty ||
-        qtyController.text.isEmpty) {
-      Get.snackbar("Error", "Please fill all fields",
-          backgroundColor: Colors.redAccent.withOpacity(0.8),
-          colorText: Colors.white);
-      return;
-    }
-
-    controller.addStockInItem({
-      'productId': controller.selectedProductId.value,
-      'warehouseId': controller.selectedWarehouseId.value,
-      'costPrice': double.parse(costController.text),
-      'quantity': int.parse(qtyController.text),
-    });
-
-    costController.clear();
-    qtyController.clear();
-    controller.selectedProductId.value = null;
-    controller.selectedWarehouseId.value = null;
+ Future<void> addStockDirectly() async {
+  if (controller.selectedProductId.value == null ||
+      controller.selectedWarehouseId.value == null ||
+      costController.text.isEmpty ||
+      qtyController.text.isEmpty) {
+    Get.snackbar("Error", "Please fill all fields",
+        backgroundColor: Colors.redAccent.withOpacity(0.8),
+        colorText: Colors.white);
+    return;
   }
+
+  final String productId = controller.selectedProductId.value!;
+  final String warehouseId = controller.selectedWarehouseId.value!;
+  final double costPrice = double.parse(costController.text);
+  final int quantity = int.parse(qtyController.text);
+
+  try {
+    await controller.addStockInSeparate(productId, warehouseId, costPrice, quantity);
+
+    Get.snackbar("Success", "Stock added successfully",
+        backgroundColor: Colors.green.withOpacity(0.8),
+        colorText: Colors.white);
+
+    // ✅ After success, go back home and open Dashboard tab
+    Get.offAll(() => MainScreen(
+      initialIndex: 0,
+      allowedScreens: ["dashboard", "inventory", "cashbook", "receivable", "purchase_order" , ],
+      role: "user", // or "admin"
+    ));
+  } catch (e) {
+    Get.snackbar("Error", "Failed to add stock: $e",
+        backgroundColor: Colors.redAccent.withOpacity(0.8),
+        colorText: Colors.white);
+  }
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -48,22 +61,13 @@ class StockInScreen extends StatelessWidget {
           ),
           elevation: 2,
           backgroundColor: Colors.teal,
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.save),
-              onPressed: () {
-                controller.saveAllStockIn();
-                 Get.offAll(() => MainScreen(initialIndex: 0));
-
-              },
-            ),
-          ],
+          // ✅ Removed the home action button
         ),
         body: Padding(
           padding: EdgeInsets.all(16.w),
           child: Column(
             children: [
-              // Product Dropdown
+              /// 🔹 Product Dropdown
               Obx(() {
                 return DropdownButtonFormField<String>(
                   decoration: InputDecoration(
@@ -85,7 +89,7 @@ class StockInScreen extends StatelessWidget {
               }),
               SizedBox(height: 10.h),
 
-              // Warehouse Dropdown
+              /// 🔹 Warehouse Dropdown
               Obx(() {
                 return DropdownButtonFormField<String>(
                   decoration: InputDecoration(
@@ -107,7 +111,7 @@ class StockInScreen extends StatelessWidget {
               }),
               SizedBox(height: 10.h),
 
-              // Cost Price
+              /// 🔹 Cost Price
               TextField(
                 controller: costController,
                 decoration: InputDecoration(
@@ -121,7 +125,7 @@ class StockInScreen extends StatelessWidget {
               ),
               SizedBox(height: 10.h),
 
-              // Quantity
+              /// 🔹 Quantity
               TextField(
                 controller: qtyController,
                 decoration: InputDecoration(
@@ -133,9 +137,9 @@ class StockInScreen extends StatelessWidget {
                 ),
                 keyboardType: TextInputType.number,
               ),
-              SizedBox(height: 10.h),
+              SizedBox(height: 20.h),
 
-              // Add Button
+              /// 🔹 Add Button
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
@@ -145,59 +149,16 @@ class StockInScreen extends StatelessWidget {
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12.r)),
                   ),
-                  onPressed: addStockCard,
-                  icon: const Icon(Icons.add, color: Colors.white),
+                  onPressed: addStockDirectly, // ✅ Save & then go home
+                  icon: const Icon(Icons.save, color: Colors.white),
                   label: Text(
-                    "Add Stock",
+                    "Save Stock",
                     style: TextStyle(
                         color: Colors.white,
                         fontSize: 16.sp,
                         fontWeight: FontWeight.bold),
                   ),
                 ),
-              ),
-              SizedBox(height: 20.h),
-
-              // Stock List
-              Expanded(
-                child: Obx(() {
-                  if (controller.stockInItems.isEmpty) {
-                    return Center(
-                      child: Text("No stock items added",
-                          style: TextStyle(fontSize: 16.sp)),
-                    );
-                  }
-                  return ListView.builder(
-                    itemCount: controller.stockInItems.length,
-                    itemBuilder: (context, index) {
-                      var item = controller.stockInItems[index];
-                      return Card(
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12.r)),
-                        elevation: 3,
-                        margin: EdgeInsets.symmetric(vertical: 6.h),
-                        child: ListTile(
-                          contentPadding: EdgeInsets.all(12.w),
-                          title: Text(
-                            "Product: ${item['productId']} - Qty: ${item['quantity']}",
-                            style: TextStyle(
-                                fontSize: 15.sp, fontWeight: FontWeight.w600),
-                          ),
-                          subtitle: Text(
-                            "Warehouse: ${item['warehouseId']} | Cost: ${item['costPrice']}",
-                            style: TextStyle(fontSize: 13.sp),
-                          ),
-                          trailing: IconButton(
-                            icon: const Icon(Icons.delete, color: Colors.red),
-                            onPressed: () {
-                              controller.removeStockInItem(index);
-                            },
-                          ),
-                        ),
-                      );
-                    },
-                  );
-                }),
               ),
             ],
           ),
@@ -206,8 +167,3 @@ class StockInScreen extends StatelessWidget {
     );
   }
 }
-
-
-
-
-

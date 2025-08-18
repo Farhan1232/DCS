@@ -12,11 +12,11 @@ import 'package:inventory_management_app/views/utilities/category_screen.dart';
 import 'package:inventory_management_app/views/utilities/product_screen.dart';
 import 'package:inventory_management_app/views/utilities/warehouse_screen.dart';
 
-class DashboardScreen extends StatelessWidget {
+class InventoryScreen extends StatelessWidget {
   final StockController controller = Get.find<StockController>();
   final ScrollController _scrollController = ScrollController();
 
-  DashboardScreen({super.key});
+  InventoryScreen({super.key});
 
   /// 🔹 Function to show Edit/Delete dialog
   void _showEditDialog(
@@ -176,6 +176,7 @@ class DashboardScreen extends StatelessWidget {
               tooltip: "Products",
               onPressed: () => Get.to(() => ProductScreen()),
             ),
+            
           ],
         ),
 

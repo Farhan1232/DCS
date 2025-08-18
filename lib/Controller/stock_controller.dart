@@ -375,4 +375,29 @@ Future<void> saveAllStockIn() async {
 
     if (pending > 0) await batch.commit();
   }
+
+
+
+/// Always create a new stock-in entry (for Dashboard view)
+Future<void> addStockInSeparate(
+  String productId,
+  String warehouseId,
+  double costPrice,
+  int quantity,
+) async {
+  await _db.collection('stock_in').add({
+    'productId': productId,
+    'warehouseId': warehouseId,
+    'costPrice': costPrice,
+    'quantity': quantity,
+    'date': DateTime.now(),
+  });
+}
+
+
+
+
+
+
+
 }

@@ -20,13 +20,14 @@ class StockOutScreen extends StatelessWidget {
     }
   }
 
- void saveStockOut() async {
+void saveStockOut() async {
   if (selectedProductId == null || selectedWarehouseId == null || qtyController.text.isEmpty) {
     Get.snackbar("Error", "Please fill all fields",
         backgroundColor: Colors.redAccent.withOpacity(0.8),
         colorText: Colors.white);
     return;
   }
+
   if (int.parse(qtyController.text) > availableQty.value) {
     Get.snackbar("Error", "Not enough stock available",
         backgroundColor: Colors.redAccent.withOpacity(0.8),
@@ -49,8 +50,12 @@ class StockOutScreen extends StatelessWidget {
       backgroundColor: Colors.green.withOpacity(0.8),
       colorText: Colors.white);
 
-  // 👇 Navigate back to InventoryScreen
-  Get.offAll(() => MainScreen(initialIndex: 0));
+  // ✅ Navigate back to Dashboard (index 0)
+  Get.offAll(() => MainScreen(
+        initialIndex: 0,
+        allowedScreens: ["dashboard", "inventory", "cashbook", "receivable", "purchase_order" , ],
+        role: "user", // or "admin"
+      ));
 }
 
 

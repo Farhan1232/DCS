@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:inventory_management_app/Controller/receivable_controller.dart';
 
 class ClosedReceivablesScreen extends StatelessWidget {
@@ -67,33 +66,49 @@ class ClosedReceivablesScreen extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(r.customerName,
-                              style: TextStyle(
-                                  fontSize: 16.sp,
-                                  fontWeight: FontWeight.bold)),
+                          Text(
+                            r.customerName,
+                            style: TextStyle(
+                              fontSize: 16.sp,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                           SizedBox(height: 4.h),
-                          Text("Outstanding: ₹ ${r.outstanding.toStringAsFixed(2)}",
-                              style: TextStyle(
-                                  fontSize: 14.sp, color: Colors.grey[700])),
+                          Text(
+                            "Outstanding: د.إ ${r.outstanding.toStringAsFixed(2)}",
+                            style: TextStyle(
+                              fontSize: 14.sp,
+                              color: Colors.grey[700],
+                            ),
+                          ),
                           SizedBox(height: 2.h),
-                          Text("Due: $dueText",
-                              style: TextStyle(
-                                  fontSize: 12.sp, color: Colors.redAccent)),
+                          Text(
+                            "Due: $dueText",
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              color: Colors.redAccent,
+                            ),
+                          ),
                         ],
                       ),
                     ),
                     Container(
                       padding: EdgeInsets.symmetric(
-                          horizontal: 10.w, vertical: 5.h),
+                        horizontal: 10.w,
+                        vertical: 5.h,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.red.withOpacity(0.15),
                         borderRadius: BorderRadius.circular(8.r),
                       ),
-                      child: Text("Closed",
-                          style: TextStyle(
-                              color: Colors.red,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 12.sp)),
+                      child: Text(
+                        "Closed",
+                        style: TextStyle(
+                          color: Colors.red,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 12.sp,
+                        ),
+                      ),
                     )
                   ],
                 ),

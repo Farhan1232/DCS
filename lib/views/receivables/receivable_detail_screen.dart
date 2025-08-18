@@ -59,13 +59,13 @@ class ReceivableDetailScreen extends StatelessWidget {
                         ),
                         SizedBox(height: 8.h),
                         Text(
-                          'Total: ₹ ${total.toStringAsFixed(2)}',
+                          'Total: د.إ ${total.toStringAsFixed(2)}',
                           style: TextStyle(
                               fontSize: 14.sp, color: Colors.green[800]),
                         ),
                         SizedBox(height: 4.h),
                         Text(
-                          'Outstanding: ₹ ${outstanding.toStringAsFixed(2)}',
+                          'Outstanding: د.إ ${outstanding.toStringAsFixed(2)}',
                           style: TextStyle(
                               fontSize: 14.sp, color: Colors.redAccent),
                         ),
@@ -161,7 +161,7 @@ class ReceivableDetailScreen extends StatelessWidget {
                           contentPadding: EdgeInsets.symmetric(
                               horizontal: 12.w, vertical: 6.h),
                           title: Text(
-                            '${p['type']} • ₹ ${(p['amount'] ?? 0).toStringAsFixed(2)}',
+                            '${p['type']} • د.إ ${(p['amount'] ?? 0).toStringAsFixed(2)}',
                             style: TextStyle(fontSize: 14.sp),
                           ),
                           subtitle: Text(
@@ -186,85 +186,84 @@ class ReceivableDetailScreen extends StatelessWidget {
     );
   }
 
-void _showAddPaymentDialog(BuildContext context, String receivableId) {
-  final amountCtrl = TextEditingController();
-  final noteCtrl = TextEditingController();
-  showDialog(
-    context: context,
-    builder: (_) => AlertDialog(
-      title: Text('Add Payment', style: TextStyle(fontSize: 16.sp)),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextField(
-            controller: amountCtrl,
-            keyboardType: TextInputType.numberWithOptions(decimal: true),
-            decoration: InputDecoration(labelText: 'Amount'),
-          ),
-          TextField(
-            controller: noteCtrl,
-            decoration: InputDecoration(labelText: 'Note (optional)'),
-          ),
+  void _showAddPaymentDialog(BuildContext context, String receivableId) {
+    final amountCtrl = TextEditingController();
+    final noteCtrl = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text('Add Payment', style: TextStyle(fontSize: 16.sp)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: amountCtrl,
+              keyboardType: TextInputType.numberWithOptions(decimal: true),
+              decoration: InputDecoration(labelText: 'Amount (د.إ)'),
+            ),
+            TextField(
+              controller: noteCtrl,
+              decoration: InputDecoration(labelText: 'Note (optional)'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Get.back(), child: Text('Cancel')),
+          TextButton(
+            onPressed: () async {
+              final amt = double.tryParse(amountCtrl.text) ?? 0;
+              if (amt <= 0) {
+                Get.snackbar('Validation', 'Enter amount');
+                return;
+              }
+              await ctrl.addPayment(receivableId, amt, 'payment', noteCtrl.text);
+              Navigator.of(context).pop(); // ✅ Always close dialog after success
+            },
+            child: Text('Add'),
+          )
         ],
       ),
-      actions: [
-        TextButton(onPressed: () => Get.back(), child: Text('Cancel')),
-        TextButton(
-          onPressed: () async {
-            final amt = double.tryParse(amountCtrl.text) ?? 0;
-            if (amt <= 0) {
-              Get.snackbar('Validation', 'Enter amount');
-              return;
-            }
-            await ctrl.addPayment(receivableId, amt, 'payment', noteCtrl.text);
-            Navigator.of(context).pop(); // ✅ Always close dialog after success
-          },
-          child: Text('Add'),
-        )
-      ],
-    ),
-  );
-}
+    );
+  }
 
-void _showAdjustDialog(BuildContext context, String receivableId) {
-  final amountCtrl = TextEditingController();
-  final noteCtrl = TextEditingController();
-  showDialog(
-    context: context,
-    builder: (_) => AlertDialog(
-      title: Text('Adjust Amount', style: TextStyle(fontSize: 16.sp)),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextField(
-            controller: amountCtrl,
-            keyboardType: TextInputType.numberWithOptions(decimal: true),
-            decoration: InputDecoration(
-                labelText: 'Adjustment (negative to reduce outstanding)'),
-          ),
-          TextField(
-            controller: noteCtrl,
-            decoration: InputDecoration(labelText: 'Note (optional)'),
-          ),
+  void _showAdjustDialog(BuildContext context, String receivableId) {
+    final amountCtrl = TextEditingController();
+    final noteCtrl = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text('Adjust Amount', style: TextStyle(fontSize: 16.sp)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: amountCtrl,
+              keyboardType: TextInputType.numberWithOptions(decimal: true),
+              decoration: InputDecoration(
+                  labelText: 'Adjustment (negative to reduce outstanding, د.إ)'),
+            ),
+            TextField(
+              controller: noteCtrl,
+              decoration: InputDecoration(labelText: 'Note (optional)'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Get.back(), child: Text('Cancel')),
+          TextButton(
+            onPressed: () async {
+              final amt = double.tryParse(amountCtrl.text) ?? 0;
+              if (amt == 0) {
+                Get.snackbar('Validation', 'Enter non-zero amount');
+                return;
+              }
+              await ctrl.addPayment(receivableId, amt, 'adjustment', noteCtrl.text);
+              Navigator.of(context).pop(); // ✅ Always close dialog after success
+            },
+            child: Text('Apply'),
+          )
         ],
       ),
-      actions: [
-        TextButton(onPressed: () => Get.back(), child: Text('Cancel')),
-        TextButton(
-          onPressed: () async {
-            final amt = double.tryParse(amountCtrl.text) ?? 0;
-            if (amt == 0) {
-              Get.snackbar('Validation', 'Enter non-zero amount');
-              return;
-            }
-            await ctrl.addPayment(receivableId, amt, 'adjustment', noteCtrl.text);
-            Navigator.of(context).pop(); // ✅ Always close dialog after success
-          },
-          child: Text('Apply'),
-        )
-      ],
-    ),
-  );
-
+    );
   }
 }
