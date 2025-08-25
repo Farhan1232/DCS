@@ -3,12 +3,14 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:inventory_management_app/Controller/stock_controller.dart';
 import 'package:inventory_management_app/views/bottomNavBar/MainScreen.dart';
+import 'package:inventory_management_app/views/stock/MultiStockOutScreen.dart';
 
 class StockOutScreen extends StatelessWidget {
   final StockController controller = Get.put(StockController());
   String? selectedProductId;
   String? selectedWarehouseId;
   final TextEditingController qtyController = TextEditingController();
+  final TextEditingController noteController = TextEditingController(); // ✅ New
   var availableQty = 0.obs;
 
   void updateAvailableQty() async {
@@ -20,44 +22,53 @@ class StockOutScreen extends StatelessWidget {
     }
   }
 
-void saveStockOut() async {
-  if (selectedProductId == null || selectedWarehouseId == null || qtyController.text.isEmpty) {
-    Get.snackbar("Error", "Please fill all fields",
-        backgroundColor: Colors.redAccent.withOpacity(0.8),
+  void saveStockOut() async {
+    if (selectedProductId == null ||
+        selectedWarehouseId == null ||
+        qtyController.text.isEmpty) {
+      Get.snackbar("Error", "Please fill all fields",
+          backgroundColor: Colors.redAccent.withOpacity(0.8),
+          colorText: Colors.white);
+      return;
+    }
+
+    if (int.parse(qtyController.text) > availableQty.value) {
+      Get.snackbar("Error", "Not enough stock available",
+          backgroundColor: Colors.redAccent.withOpacity(0.8),
+          colorText: Colors.white);
+      return;
+    }
+
+    await controller.addStockOutSeparate(
+      selectedProductId!,
+      selectedWarehouseId!,
+      int.parse(qtyController.text),
+      noteController.text.isNotEmpty ? noteController.text : null, // ✅ Save note
+    );
+
+    controller.fetchInventory();
+
+    qtyController.clear();
+    noteController.clear(); // ✅ Clear note field
+    availableQty.value = 0;
+
+    Get.snackbar("Success", "Stock Out saved and inventory updated",
+        backgroundColor: Colors.green.withOpacity(0.8),
         colorText: Colors.white);
-    return;
+
+    // ✅ Navigate back to Dashboard (index 0)
+    Get.offAll(() => MainScreen(
+          initialIndex: 0,
+          allowedScreens: [
+            "dashboard",
+            "inventory",
+            "cashbook",
+            "receivable",
+            "purchase_order"
+          ],
+          role: "user",
+        ));
   }
-
-  if (int.parse(qtyController.text) > availableQty.value) {
-    Get.snackbar("Error", "Not enough stock available",
-        backgroundColor: Colors.redAccent.withOpacity(0.8),
-        colorText: Colors.white);
-    return;
-  }
-
-  await controller.addStockOut(
-    selectedProductId!,
-    selectedWarehouseId!,
-    int.parse(qtyController.text),
-  );
-
-  controller.fetchInventory();
-
-  qtyController.clear();
-  availableQty.value = 0;
-
-  Get.snackbar("Success", "Stock Out saved and inventory updated",
-      backgroundColor: Colors.green.withOpacity(0.8),
-      colorText: Colors.white);
-
-  // ✅ Navigate back to Dashboard (index 0)
-  Get.offAll(() => MainScreen(
-        initialIndex: 0,
-        allowedScreens: ["dashboard", "inventory", "cashbook", "receivable", "purchase_order" , ],
-        role: "user", // or "admin"
-      ));
-}
-
 
   @override
   Widget build(BuildContext context) {
@@ -88,8 +99,10 @@ void saveStockOut() async {
                     fillColor: Colors.white,
                   ),
                   value: selectedProductId,
-                  items: controller.products.map<DropdownMenuItem<String>>((p) {
-                    return DropdownMenuItem(value: p['id'], child: Text(p['name']));
+                  items:
+                      controller.products.map<DropdownMenuItem<String>>((p) {
+                    return DropdownMenuItem(
+                        value: p['id'], child: Text(p['name']));
                   }).toList(),
                   onChanged: (val) {
                     selectedProductId = val;
@@ -110,8 +123,10 @@ void saveStockOut() async {
                     fillColor: Colors.white,
                   ),
                   value: selectedWarehouseId,
-                  items: controller.warehouses.map<DropdownMenuItem<String>>((w) {
-                    return DropdownMenuItem(value: w['id'], child: Text(w['name']));
+                  items:
+                      controller.warehouses.map<DropdownMenuItem<String>>((w) {
+                    return DropdownMenuItem(
+                        value: w['id'], child: Text(w['name']));
                   }).toList(),
                   onChanged: (val) {
                     selectedWarehouseId = val;
@@ -149,6 +164,20 @@ void saveStockOut() async {
                 ),
                 keyboardType: TextInputType.number,
               ),
+              SizedBox(height: 12.h),
+
+              // ✅ Note Input
+              TextField(
+                controller: noteController,
+                decoration: InputDecoration(
+                  labelText: "Note (optional)",
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.r)),
+                  filled: true,
+                  fillColor: Colors.white,
+                ),
+                keyboardType: TextInputType.text,
+              ),
               SizedBox(height: 20.h),
 
               // Save Button
@@ -162,9 +191,33 @@ void saveStockOut() async {
                         borderRadius: BorderRadius.circular(12.r)),
                   ),
                   onPressed: saveStockOut,
-                  
                   child: Text(
                     "Save",
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+
+              SizedBox(height: 12.h),
+
+              // ✅ New Multi Stock Out Button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blueGrey,
+                    padding: EdgeInsets.symmetric(vertical: 14.h),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.r)),
+                  ),
+                  onPressed: () {
+                    Get.to(() => MultiStockOutScreen()); // 👈 new page
+                  },
+                  child: Text(
+                    "Multi Stock Out",
                     style: TextStyle(
                         color: Colors.white,
                         fontSize: 16.sp,

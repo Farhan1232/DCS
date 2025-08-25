@@ -7,6 +7,7 @@ import 'package:intl/intl.dart'; // 👈 for date & time formatting
 import 'package:inventory_management_app/Controller/PurchaseOrderController.dart';
 import 'package:inventory_management_app/Controller/stock_controller.dart';
 
+
 class PurchaseOrderHistoryScreen extends StatelessWidget {
   final PurchaseOrderController controller = Get.find();
   final StockController stockController = Get.find();
@@ -148,6 +149,9 @@ class PurchaseOrderHistoryScreen extends StatelessWidget {
                                   po['warehouseId'],
                                   (item['price'] as num).toDouble(),
                                   receiveQty,
+                                  null,
+                                  
+                                  
                                 );
                               }
                             },

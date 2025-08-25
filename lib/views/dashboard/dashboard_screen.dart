@@ -34,59 +34,71 @@ class InventoryScreen extends StatelessWidget {
       builder: (context) {
         return AlertDialog(
           title: Text(item['type'] == 'in' ? "Edit Stock In" : "Edit Stock Out"),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                /// 🔹 Warehouse Dropdown
-                DropdownButtonFormField<String>(
-                  value: selectedWarehouseId,
-                  decoration: const InputDecoration(labelText: "Warehouse"),
-                  items: controller.warehouses.map((w) {
-                    final warehouse = w as Map<String, dynamic>; // ✅ Cast
-                    return DropdownMenuItem<String>(
-                      value: warehouse['id'].toString(),
-                      child: Text(warehouse['name'].toString()),
-                    );
-                  }).toList(),
-                  onChanged: (val) {
-                    if (val != null) selectedWarehouseId = val;
-                  },
-                ),
+         content: SingleChildScrollView(
+  child: SizedBox(
+    width: MediaQuery.of(context).size.width * 0.8, // ✅ responsive width
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        DropdownButtonFormField<String>(
+          isExpanded: true, // ✅ prevents overflow
+          value: selectedWarehouseId,
+          decoration: const InputDecoration(labelText: "Warehouse"),
+          items: controller.warehouses.map((w) {
+            final warehouse = w as Map<String, dynamic>;
+            return DropdownMenuItem<String>(
+              value: warehouse['id'].toString(),
+              child: Text(
+                warehouse['name'].toString(),
+                overflow: TextOverflow.ellipsis, // ✅ ellipsis if too long
+              ),
+            );
+          }).toList(),
+          onChanged: (val) {
+            if (val != null) selectedWarehouseId = val;
+          },
+        ),
 
-                /// 🔹 Product Dropdown
-                DropdownButtonFormField<String>(
-                  value: selectedProductId,
-                  decoration: const InputDecoration(labelText: "Product"),
-                  items: controller.products.map((p) {
-                    final product = p as Map<String, dynamic>; // ✅ Cast
-                    return DropdownMenuItem<String>(
-                      value: product['id'].toString(),
-                      child: Text(product['name'].toString()),
-                    );
-                  }).toList(),
-                  onChanged: (val) {
-                    if (val != null) selectedProductId = val;
-                  },
-                ),
+        const SizedBox(height: 10),
 
-                /// 🔹 Quantity Input
-                TextField(
-                  controller: qtyController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: "Quantity"),
-                ),
+        DropdownButtonFormField<String>(
+          isExpanded: true, // ✅ prevents overflow
+          value: selectedProductId,
+          decoration: const InputDecoration(labelText: "Product"),
+          items: controller.products.map((p) {
+            final product = p as Map<String, dynamic>;
+            return DropdownMenuItem<String>(
+              value: product['id'].toString(),
+              child: Text(
+                product['name'].toString(),
+                overflow: TextOverflow.ellipsis,
+              ),
+            );
+          }).toList(),
+          onChanged: (val) {
+            if (val != null) selectedProductId = val;
+          },
+        ),
 
-                /// 🔹 Price Input (only for stock in)
-                if (item['type'] == 'in')
-                  TextField(
-                    controller: priceController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(labelText: "Price"),
-                  ),
-              ],
-            ),
+        const SizedBox(height: 10),
+
+        TextField(
+          controller: qtyController,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(labelText: "Quantity"),
+        ),
+
+        if (item['type'] == 'in')
+          TextField(
+            controller: priceController,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(labelText: "Price"),
           ),
+      ],
+    ),
+  ),
+),
+
           actions: [
             TextButton(
               child: const Text("Cancel"),
@@ -181,44 +193,50 @@ class InventoryScreen extends StatelessWidget {
         ),
 
         /// 🔹 Stock History
-        body: StreamBuilder<QuerySnapshot>(
-          stream:
-              FirebaseFirestore.instance.collectionGroup('stock_in').snapshots(),
-          builder: (context, inSnapshot) {
-            return StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collectionGroup('stock_out')
-                  .snapshots(),
-              builder: (context, outSnapshot) {
-                if (!inSnapshot.hasData || !outSnapshot.hasData) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+       body: StreamBuilder<QuerySnapshot>(
+  stream: FirebaseFirestore.instance
+      .collection('stock_in_logs')
+      .orderBy('date', descending: true)
+      .snapshots(),
+  builder: (context, inSnapshot) {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('stock_out_logs')
+          .orderBy('date', descending: true)
+          .snapshots(),
+      builder: (context, outSnapshot) {
+        if (!inSnapshot.hasData || !outSnapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-                final stockInDocs = inSnapshot.data!.docs;
-                final stockOutDocs = outSnapshot.data!.docs;
+        final stockInDocs = inSnapshot.data!.docs;
+        final stockOutDocs = outSnapshot.data!.docs;
 
-                final allHistory = [
-                  ...stockInDocs.map((d) => {
-                        'id': d.id,
-                        'type': 'in',
-                        'productId': d['productId'],
-                        'warehouseId': d['warehouseId'],
-                        'quantity': d['quantity'],
-                        'price': d['costPrice'] ?? 0,
-                        'date': (d['date'] as Timestamp).toDate(),
-                      }),
-                  ...stockOutDocs.map((d) => {
-                        'id': d.id,
-                        'type': 'out',
-                        'productId': d['productId'],
-                        'warehouseId': d['warehouseId'],
-                        'quantity': d['quantity'],
-                        'price': null,
-                        'date': (d['date'] as Timestamp).toDate(),
-                      }),
-                ];
+        final allHistory = [
+          ...stockInDocs.map((d) => {
+                'id': d.id,
+                'type': 'in',
+                'productId': d['productId'],
+                'warehouseId': d['warehouseId'],
+                'quantity': d['quantity'],
+                'note': d['note'] ?? "",   // ✅ include note
+                'price': d['costPrice'] ?? 0,
+              
+                'date': (d['date'] as Timestamp).toDate(),
+              }),
+          ...stockOutDocs.map((d) => {
+                'id': d.id,
+                'type': 'out',
+                'productId': d['productId'],
+                'warehouseId': d['warehouseId'],
+                'quantity': d['quantity'],
+                'price': null,
+                'note': d['note'] ?? "",   // ✅ include note
+                'date': (d['date'] as Timestamp).toDate(),
+              }),
+        ];
 
-                allHistory.sort((a, b) => b['date'].compareTo(a['date']));
+        allHistory.sort((a, b) => b['date'].compareTo(a['date']));
 
                 Map<String, List<Map<String, dynamic>>> groupedByWarehouse = {};
                 for (var item in allHistory) {
@@ -291,6 +309,8 @@ class InventoryScreen extends StatelessWidget {
                                   Text("Quantity: ${item['quantity']}"),
                                   if (item['type'] == 'in')
                                     Text("Price: ${item['price']}"),
+                                      if ((item['note'] ?? "").isNotEmpty)   // ✅ only show if not empty
+      Text("Note: ${item['note']}"),
                                   Text("Date: ${item['date']}"),
                                 ],
                               ),

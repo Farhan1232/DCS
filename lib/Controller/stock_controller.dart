@@ -16,7 +16,7 @@ class StockController extends GetxController {
   // Stock Out history
   var stockOutHistory = [].obs;
 
-  // Selected dropdown persistence (if needed elsewhere)
+  // Selected dropdown persistence
   var selectedProductId = RxnString();
   var selectedWarehouseId = RxnString();
 
@@ -34,7 +34,7 @@ class StockController extends GetxController {
   }
 
   // ------------------------
-  // Fetch master data
+  // Master data fetch
   // ------------------------
 
   void fetchCategories() {
@@ -59,57 +59,65 @@ class StockController extends GetxController {
   }
 
   // ------------------------
-  // Stock In / Stock Out (IDs only)
+  // Stock In / Stock Out
   // ------------------------
 
+  /// Add or update Stock In (docId = productId-warehouseId)
   Future<void> addStockIn(
-  String productId,
-  String warehouseId,
-  double costPrice,
-  int quantity,
-) async {
-  // Check if a document already exists for this (productId, warehouseId)
-  final existingDocs = await _db
-      .collection('stock_in')
-      .where('productId', isEqualTo: productId)
-      .where('warehouseId', isEqualTo: warehouseId)
-      .get();
+    String productId,
+    String warehouseId,
+    double costPrice,
+    int quantity,
+    String? note,
+  ) async {
+    final docId = "${productId}_$warehouseId"; // ✅ fixed docId
+    final ref = _db.collection('stock_in').doc(docId);
 
-  if (existingDocs.docs.isNotEmpty) {
-    // ✅ Update the existing doc
-    final doc = existingDocs.docs.first;
-    final prevQty = doc['quantity'] as int;
-    final prevPrice = (doc['costPrice'] as num).toDouble();
-
-    await doc.reference.update({
-      'quantity': prevQty + quantity, // Add new qty
-      'costPrice': costPrice,         // Replace price with latest
-      'date': DateTime.now(),         // Update timestamp
-    });
-  } else {
-    // ✅ Create a new doc if no match
-    await _db.collection('stock_in').add({
-      'productId': productId,
-      'warehouseId': warehouseId,
-      'costPrice': costPrice,
-      'quantity': quantity,
-      'date': DateTime.now(),
-    });
+    final snap = await ref.get();
+    if (snap.exists) {
+      final prevQty = snap['quantity'] as int? ?? 0;
+      await ref.update({
+        'quantity': prevQty + quantity,
+        'costPrice': costPrice,
+        'note': note ?? "",
+        'date': DateTime.now(),
+      });
+    } else {
+      await ref.set({
+        'productId': productId,
+        'warehouseId': warehouseId,
+        'costPrice': costPrice,
+        'quantity': quantity,
+        'note': note ?? "",
+        'date': DateTime.now(),
+      });
+    }
   }
-}
 
+  /// Add or update Stock Out (docId = productId-warehouseId)
   Future<void> addStockOut(
     String productId,
     String warehouseId,
     int quantity,
   ) async {
-    // Guard: write only IDs
-    await _db.collection('stock_out').add({
-      'productId': productId,
-      'warehouseId': warehouseId,
-      'quantity': quantity,
-      'date': DateTime.now(),
-    });
+    final docId = "${productId}_$warehouseId"; // ✅ fixed docId
+    final ref = _db.collection('stock_out').doc(docId);
+
+    final snap = await ref.get();
+    if (snap.exists) {
+      final prevQty = snap['quantity'] as int? ?? 0;
+      await ref.update({
+        'quantity': prevQty + quantity,
+        'date': DateTime.now(),
+      });
+    } else {
+      await ref.set({
+        'productId': productId,
+        'warehouseId': warehouseId,
+        'quantity': quantity,
+        'date': DateTime.now(),
+      });
+    }
   }
 
   void fetchStockOutHistory() {
@@ -137,168 +145,148 @@ class StockController extends GetxController {
   void removeStockInItem(int index) => stockInItems.removeAt(index);
   void clearStockInItems() => stockInItems.clear();
 
-Future<void> saveAllStockIn() async {
-  if (stockInItems.isEmpty) {
-    Get.snackbar("Error", "No stock items to save");
-    return;
-  }
-
-  for (var item in stockInItems) {
-    final productId = item['productId'];
-    final warehouseId = item['warehouseId'];
-    final costPrice = (item['costPrice'] as num).toDouble();
-    final quantity = item['quantity'] as int;
-
-    final existingDocs = await _db
-        .collection('stock_in')
-        .where('productId', isEqualTo: productId)
-        .where('warehouseId', isEqualTo: warehouseId)
-        .get();
-
-    if (existingDocs.docs.isNotEmpty) {
-      // ✅ Update existing
-      final doc = existingDocs.docs.first;
-      final prevQty = doc['quantity'] as int;
-
-      await doc.reference.update({
-        'quantity': prevQty + quantity,
-        'costPrice': costPrice,   // latest price
-        'date': DateTime.now(),
-      });
-    } else {
-      // ✅ Create new
-      await _db.collection('stock_in').add({
-        'productId': productId,
-        'warehouseId': warehouseId,
-        'costPrice': costPrice,
-        'quantity': quantity,
-        'date': DateTime.now(),
-      });
+  Future<void> saveAllStockIn() async {
+    if (stockInItems.isEmpty) {
+      Get.snackbar("Error", "No stock items to save");
+      return;
     }
+
+    for (var item in stockInItems) {
+      final productId = item['productId'];
+      final warehouseId = item['warehouseId'];
+      final costPrice = (item['costPrice'] as num).toDouble();
+      final quantity = item['quantity'] as int;
+      final note = item['note'] ?? "";
+
+      final docId = "${productId}_$warehouseId"; // ✅ fixed docId
+      final ref = _db.collection('stock_in').doc(docId);
+
+      final snap = await ref.get();
+      if (snap.exists) {
+        final prevQty = snap['quantity'] as int? ?? 0;
+        await ref.update({
+          'quantity': prevQty + quantity,
+          'costPrice': costPrice,
+          'note': note,
+          'date': DateTime.now(),
+        });
+      } else {
+        await ref.set({
+          'productId': productId,
+          'warehouseId': warehouseId,
+          'costPrice': costPrice,
+          'quantity': quantity,
+          'note': note,
+          'date': DateTime.now(),
+        });
+      }
+    }
+
+    clearStockInItems();
+    fetchInventory();
+    Get.snackbar("Success", "Stock saved successfully");
   }
-
-  clearStockInItems();
-  fetchInventory();
-  Get.snackbar("Success", "Stock saved successfully");
-}
-
 
   // ------------------------
   // Quantity helper
   // ------------------------
 
-  Future<int> getAvailableQuantity(String productId, String warehouseId) async {
-    final stockInSnap = await _db
-        .collection('stock_in')
-        .where('productId', isEqualTo: productId)
-        .where('warehouseId', isEqualTo: warehouseId)
-        .get();
+  Future<int> getAvailableQuantity(
+      String productId, String warehouseId) async {
+    final inSnap =
+        await _db.collection('stock_in').doc("${productId}_$warehouseId").get();
+    final outSnap =
+        await _db.collection('stock_out').doc("${productId}_$warehouseId").get();
 
-    final totalIn =
-        stockInSnap.docs.fold(0, (sum, d) => sum + (d['quantity'] as int));
-
-    final stockOutSnap = await _db
-        .collection('stock_out')
-        .where('productId', isEqualTo: productId)
-        .where('warehouseId', isEqualTo: warehouseId)
-        .get();
-
-    final totalOut =
-        stockOutSnap.docs.fold(0, (sum, d) => sum + (d['quantity'] as int));
+    final totalIn = inSnap.exists ? (inSnap['quantity'] as int) : 0;
+    final totalOut = outSnap.exists ? (outSnap['quantity'] as int) : 0;
 
     return totalIn - totalOut;
   }
 
   // ------------------------
-  // Inventory with accurate price
+  // Inventory (same logic, faster now)
   // ------------------------
 
   void fetchInventory() {
-    _db.collection('stock_in').snapshots().listen((stockSnap) async {
-      if (products.isEmpty || warehouses.isEmpty) return;
+    RxList stockInDocs = [].obs;
+    RxList stockOutDocs = [].obs;
 
-      final List<Map<String, dynamic>> inventoryList = [];
+    _db.collection('stock_in').snapshots().listen((snap) {
+      stockInDocs.value =
+          snap.docs.map((d) => {'id': d.id, ...d.data()}).toList();
+      _recomputeInventory(stockInDocs, stockOutDocs);
+    });
 
-      for (final product in products) {
-        for (final warehouse in warehouses) {
-          // Filter docs for this (productId, warehouseId)
-          final docs = stockSnap.docs
-              .where((d) =>
-                  d['productId'] == product['id'] &&
-                  d['warehouseId'] == warehouse['id'])
-              .toList();
-
-          // totalIn
-          final totalIn = docs.fold<int>(
-              0, (sum, d) => sum + (d['quantity'] as int));
-
-          // totalOut
-          final stockOutSnap = await _db
-              .collection('stock_out')
-              .where('productId', isEqualTo: product['id'])
-              .where('warehouseId', isEqualTo: warehouse['id'])
-              .get();
-
-          final totalOut = stockOutSnap.docs
-              .fold<int>(0, (sum, d) => sum + (d['quantity'] as int));
-
-          final availableQty = totalIn - totalOut;
-
-          if (availableQty > 0) {
-            // sort by date to get true latest price
-            docs.sort((a, b) {
-              DateTime ad = _asDate(a['date']);
-              DateTime bd = _asDate(b['date']);
-              return ad.compareTo(bd);
-            });
-
-            double latestPrice = 0;
-            if (docs.isNotEmpty) {
-              final last = docs.last;
-              final cp = last.data().containsKey('costPrice')
-                  ? last['costPrice']
-                  : 0;
-              latestPrice = (cp as num).toDouble();
-            }
-
-            inventoryList.add({
-              'productId': product['id'],
-              'productName': product['name'],
-              'warehouseId': warehouse['id'],
-              'warehouseName': warehouse['name'],
-              'quantity': availableQty,
-              'price': latestPrice,
-              'categoryId': product['categoryId'],
-              'date': docs.isNotEmpty ? _asDate(docs.last['date']) : DateTime.now(),
-            });
-          }
-        }
-      }
-
-      inventory.value = inventoryList;
+    _db.collection('stock_out').snapshots().listen((snap) {
+      stockOutDocs.value =
+          snap.docs.map((d) => {'id': d.id, ...d.data()}).toList();
+      _recomputeInventory(stockInDocs, stockOutDocs);
     });
   }
 
-  DateTime _asDate(dynamic v) {
-    if (v is Timestamp) return v.toDate();
-    if (v is DateTime) return v;
-    return DateTime.fromMillisecondsSinceEpoch(0);
+  void _recomputeInventory(List stockInDocs, List stockOutDocs) {
+    if (products.isEmpty || warehouses.isEmpty) return;
+
+    final Map<String, int> stockInMap = {};
+    final Map<String, double> latestPriceMap = {};
+    final Map<String, int> stockOutMap = {};
+
+    for (final doc in stockInDocs) {
+      final pid = doc['productId'];
+      final wid = doc['warehouseId'];
+      final key = "$pid-$wid";
+
+      stockInMap[key] = (stockInMap[key] ?? 0) + (doc['quantity'] as int);
+      latestPriceMap[key] = (doc['costPrice'] as num).toDouble();
+    }
+
+    for (final doc in stockOutDocs) {
+      final pid = doc['productId'];
+      final wid = doc['warehouseId'];
+      final key = "$pid-$wid";
+
+      stockOutMap[key] = (stockOutMap[key] ?? 0) + (doc['quantity'] as int);
+    }
+
+    final List<Map<String, dynamic>> inventoryList = [];
+
+    for (final product in products) {
+      for (final warehouse in warehouses) {
+        final key = "${product['id']}-${warehouse['id']}";
+        final totalIn = stockInMap[key] ?? 0;
+        final totalOut = stockOutMap[key] ?? 0;
+        final availableQty = totalIn - totalOut;
+
+        if (availableQty > 0) {
+          inventoryList.add({
+            'productId': product['id'],
+            'productName': product['name'],
+            'warehouseId': warehouse['id'],
+            'warehouseName': warehouse['name'],
+            'quantity': availableQty,
+            'price': latestPriceMap[key] ?? 0,
+            'categoryId': product['categoryId'],
+          });
+        }
+      }
+    }
+
+    inventory.value = inventoryList;
   }
 
   // ------------------------
-  // Real-time sanitizers (fix & remove name fields)
+  // Sanitizer (kept same)
   // ------------------------
 
   void _startSanitizers() {
     if (_sanitizersStarted) return;
     _sanitizersStarted = true;
 
-    // Watch & sanitize stock_in
     _db.collection('stock_in').snapshots().listen((snap) {
       _sanitizeDocs(snap.docs, 'stock_in');
     });
 
-    // Watch & sanitize stock_out
     _db.collection('stock_out').snapshots().listen((snap) {
       _sanitizeDocs(snap.docs, 'stock_out');
     });
@@ -308,10 +296,8 @@ Future<void> saveAllStockIn() async {
     List<QueryDocumentSnapshot<Map<String, dynamic>>> docs,
     String collectionName,
   ) async {
-    // Need master data to map names -> IDs
     if (products.isEmpty || warehouses.isEmpty) return;
 
-    // Build lowercase maps for robust matching
     final Map<String, String> productNameToId = {
       for (final p in products)
         (p['name']?.toString().trim().toLowerCase() ?? ''): p['id']
@@ -334,7 +320,6 @@ Future<void> saveAllStockIn() async {
 
       Map<String, dynamic> upd = {};
 
-      // If IDs missing but names present → try to recover IDs
       if (!hasPI && hasPN) {
         final pn = data['productName']?.toString().trim().toLowerCase() ?? '';
         final pid = productNameToId[pn];
@@ -351,7 +336,6 @@ Future<void> saveAllStockIn() async {
         }
       }
 
-      // Delete name fields ONLY if the doc will have IDs after this update
       final willHavePI = upd.containsKey('productId') || hasPI;
       final willHaveWI = upd.containsKey('warehouseId') || hasWI;
 
@@ -375,27 +359,90 @@ Future<void> saveAllStockIn() async {
 
     if (pending > 0) await batch.commit();
   }
-
-
-
-/// Always create a new stock-in entry (for Dashboard view)
+  /// Always create a *log entry* but also update the aggregated stock_in doc
+/// Doc ID stays fixed as productId_warehouseId for instant inventory updates.
+/// UI that previously called addStockInSeparate will keep working.
 Future<void> addStockInSeparate(
   String productId,
   String warehouseId,
   double costPrice,
   int quantity,
+  String? note,
 ) async {
-  await _db.collection('stock_in').add({
+  // 1) Write a log row (optional history). Uses auto ID; safe & fast.
+  // If you don't need history, you can delete this block.
+  await _db.collection('stock_in_logs').add({
     'productId': productId,
     'warehouseId': warehouseId,
     'costPrice': costPrice,
     'quantity': quantity,
+    'note': note ?? "",
     'date': DateTime.now(),
   });
+
+  // 2) Update the aggregated stock_in doc with fixed ID (fast real-time)
+  final docId = "${productId}_$warehouseId";
+  final ref = _db.collection('stock_in').doc(docId);
+  final snap = await ref.get();
+
+  if (snap.exists) {
+    final prevQty = (snap.data()?['quantity'] as int?) ?? 0;
+    await ref.update({
+      'quantity': prevQty + quantity,
+      'costPrice': costPrice, // latest cost
+      'note': note ?? "",
+      'date': DateTime.now(),
+    });
+  } else {
+    await ref.set({
+      'productId': productId,
+      'warehouseId': warehouseId,
+      'costPrice': costPrice,
+      'quantity': quantity,
+      'note': note ?? "",
+      'date': DateTime.now(),
+    });
+  }
 }
 
 
 
+Future<void> addStockOutSeparate(
+  String productId,
+  String warehouseId,
+  int quantity,
+  String? note,
+) async {
+  // 1) Write a log row (history)
+  await _db.collection('stock_out_logs').add({
+    'productId': productId,
+    'warehouseId': warehouseId,
+    'quantity': quantity,
+    'note': note ?? "",
+    'date': DateTime.now(),
+  });
+
+  // 2) Update aggregated stock_out doc (for instant inventory)
+  final docId = "${productId}_$warehouseId";
+  final ref = _db.collection('stock_out').doc(docId);
+  final snap = await ref.get();
+
+  if (snap.exists) {
+    final prevQty = (snap.data()?['quantity'] as int?) ?? 0;
+    await ref.update({
+      'quantity': prevQty + quantity,
+      'date': DateTime.now(),
+    });
+  } else {
+    await ref.set({
+      'productId': productId,
+      'warehouseId': warehouseId,
+      'quantity': quantity,
+      'note': note ?? "",
+      'date': DateTime.now(),
+    });
+  }
+}
 
 
 
