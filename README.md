@@ -1,16 +1,57 @@
-# DCS
+DCS (Digital Control System)
 
-A new Flutter project.
+DCS is a modern inventory and warehouse management system built with Flutter (Provider + MVC architecture) and Firebase backend. The app enables businesses to efficiently manage products, stock movements, warehouses, and financial records in real time.
 
-## Getting Started
+🚀 Features
 
-This project is a starting point for a Flutter application.
+📦 Stock Management
 
-A few resources to get you started if this is your first Flutter project:
+Stock In / Stock Out tracking
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+Transfer stock between warehouses
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Manage receivables and payables
+
+Cash In / Cash Out records
+
+🏭 Warehouse Management
+
+Create and manage multiple warehouses
+
+Add and update warehouse locations
+
+Track product movement from one warehouse to another
+
+🛒 Product Management
+
+Add, edit, and delete products
+
+Categorize items with filters
+
+View products in tabular form with searchable data
+
+📊 Data Handling
+
+Forms for structured input
+
+Table-based views with filters and sorting
+
+Real-time updates via Firebase
+
+🔐 Authentication
+
+Firebase Authentication (Email/Password, Google, etc.)
+
+Secure login & session handling
+
+🛠️ Tech Stack
+
+Frontend: Flutter (Provider + MVC pattern for clean architecture & state management)
+
+Backend: Firebase Firestore (real-time database), Firebase Auth
+
+Hosting: Firebase Hosting (if web build required)
+
+🎯 Goal
+
+The goal of DCS is to provide businesses with a lightweight, efficient, and scalable inventory solution to track stock, manage warehouses, and handle financial flows with real-time synchronization and secure authentication.
