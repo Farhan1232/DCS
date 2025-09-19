@@ -22,12 +22,6 @@ Add and update warehouse locations
 
 Track product movement from one warehouse to another
 
-
-
-Demo Video 
-
-https://github.com/Farhan1232/DCS/blob/main/media/dcs_video.mp4 
-
 🛒 Product Management
 
 Add, edit, and delete products
