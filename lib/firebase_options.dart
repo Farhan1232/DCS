@@ -44,13 +44,13 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: "YOUR_IOS_API_KEY",
-    appId: "YOUR_IOS_APP_ID",
-    messagingSenderId: "YOUR_SENDER_ID",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_PROJECT_ID.appspot.com",
+    apiKey: "AIzaSyACmmPbjQNl_u8HBCupJVOQWXyiamXjrAk",
+    appId: "1:66994658980:ios:c5ba3111ae1b2fad855031",
+    messagingSenderId: "66994658980",
+    projectId: "inventorysystem-4d9d4",
+    storageBucket: "inventorysystem-4d9d4.firebasestorage.app",
     iosClientId: "YOUR_IOS_CLIENT_ID",
-    iosBundleId: "YOUR_IOS_BUNDLE_ID",
+    iosBundleId: "com.abtechnologies.inventoryManagement ",
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
