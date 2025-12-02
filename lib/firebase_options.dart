@@ -26,21 +26,21 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-  apiKey: "YOUR_web_API_KEY",
-  authDomain: "YOUR_web_API_KEY",
-  projectId: "YOUR_web_API_KEY",
-  storageBucket: "YOUR_web_API_KEYp",
-  messagingSenderId: "YOUR_web_API_KEY",
-  appId: "YOUR_web_API_KEY",
-  measurementId: "YOUR_web_API_KEY"
+  apiKey: "AIzaSyARBT8ENh1UsFL9RL4SaNQAknsCjn5-drQ",
+  authDomain: "inventorysystem-4d9d4.firebaseapp.com",
+  projectId: "inventorysystem-4d9d4",
+  storageBucket: "inventorysystem-4d9d4.firebasestorage.app",
+  messagingSenderId: "66994658980",
+  appId: "1:66994658980:web:9a2f2097422b91f0855031",
+  measurementId: "G-S4CZ9LLHQS"
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: "YOUR_android_API_KEY",
-    appId: "YOUR_android_API_KEY",
-    messagingSenderId: "YOUR_android_API_KEY",
-    projectId: "YOUR_android_API_KEY",
-    storageBucket: "YOUR_android_API_KEY",
+    apiKey: "AIzaSyAPyc6SKTYOiOrlA7FbVKlf0yrc9rgwSH8",
+    appId: "66994658980",
+    messagingSenderId: "1:66994658980:android:fe762e9ec7a271b5855031",
+    projectId: "inventorysystem-4d9d4",
+    storageBucket: "inventorysystem-4d9d4.firebasestorage.app",
   );
 
   static const FirebaseOptions ios = FirebaseOptions(

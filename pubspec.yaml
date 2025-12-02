@@ -48,6 +48,22 @@ dependencies:
   flutter_speed_dial:
 
 dev_dependencies:
+  rename: ^3.1.0
+  flutter_launcher_icons: ^0.14.1
+  
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/app_icon.jpeg"
+
+
+
+
+
+
+
+
   flutter_test:
     sdk: flutter
 
