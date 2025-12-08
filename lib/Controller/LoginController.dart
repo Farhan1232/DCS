@@ -3,6 +3,8 @@ import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:inventory_management_app/views/Authentication/login.dart';
+import 'package:inventory_management_app/views/Authentication/pending_screen.dart';
+
 import 'package:inventory_management_app/views/bottomNavBar/MainScreen.dart';
 
 class LoginController extends GetxController {
@@ -25,6 +27,15 @@ class LoginController extends GetxController {
           .get();
 
       if (userDoc.exists) {
+        // ✅ Check if user is approved
+        String status = userDoc["status"] ?? "pending";
+        
+        if (status == "pending") {
+          // Navigate to pending approval screen
+          Get.offAll(() => PendingApprovalScreen());
+          return;
+        }
+
         String role = userDoc["role"] ?? "user";
         List<String> allowedScreens = role == "admin"
             ? ["dashboard","inventory","cashbook","receivable","purchase_order"]
@@ -52,6 +63,29 @@ class LoginController extends GetxController {
           .get();
 
       if (userDoc.exists) {
+        // ✅ Check if user status is approved
+        String status = userDoc["status"] ?? "pending";
+        
+        if (status == "pending") {
+          // Navigate to pending approval screen
+          Get.offAll(() => PendingApprovalScreen());
+          return;
+        }
+
+        if (status == "rejected") {
+          // Sign out the user
+          await FirebaseAuth.instance.signOut();
+          Get.snackbar(
+            "Account Rejected",
+            "Your account has been rejected by admin. Please contact support.",
+            backgroundColor: Colors.red,
+            colorText: Colors.white,
+            duration: Duration(seconds: 4),
+            snackPosition: SnackPosition.BOTTOM,
+          );
+          return;
+        }
+
         String role = userDoc["role"] ?? "user";
 
         List<String> allowedScreens = role == "admin"
@@ -73,15 +107,14 @@ class LoginController extends GetxController {
     }
   }
 
-// ✅ Logout logic
-Future<void> logout() async {
-  try {
-    await FirebaseAuth.instance.signOut();
-    // Directly navigate to login screen widget
-    Get.offAll(() => LoginPage());
-  } catch (e) {
-    Get.snackbar("Logout Failed", e.toString());
+  // ✅ Logout logic
+  Future<void> logout() async {
+    try {
+      await FirebaseAuth.instance.signOut();
+      // Directly navigate to login screen widget
+      Get.offAll(() => LoginPage());
+    } catch (e) {
+      Get.snackbar("Logout Failed", e.toString());
+    }
   }
-}
-
 }

@@ -3,6 +3,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:inventory_management_app/Controller/LoginController.dart';
 import 'package:inventory_management_app/views/Authentication/forgetpassword.dart';
+import 'package:inventory_management_app/views/Authentication/signup_screen.dart';
+
 
 class LoginPage extends StatelessWidget {
   final emailCtrl = TextEditingController();
@@ -168,19 +170,44 @@ class LoginPage extends StatelessWidget {
 
                 // 🔹 Forgot Password
                 TextButton(
-  onPressed: () {
-    Get.to(() => ForgotPasswordScreen()); // ✅ Navigate to ForgotPasswordScreen
-  },
-  child: Text(
-    "Forgot Password?",
-    style: TextStyle(
-      fontSize: 14.sp,
-      fontWeight: FontWeight.w500,
-      color: Colors.blue,
-    ),
-  ),
-),
+                  onPressed: () {
+                    Get.to(() => ForgotPasswordScreen());
+                  },
+                  child: Text(
+                    "Forgot Password?",
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.blue,
+                    ),
+                  ),
+                ),
+                
+                SizedBox(height: 10.h),
 
+                // 🔹 Don't have an account? Sign Up
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      "Don't have an account? ",
+                      style: TextStyle(fontSize: 14.sp, color: Colors.grey[600]),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Get.to(() => SignupPage()); // ✅ Navigate to SignupPage
+                      },
+                      child: Text(
+                        "Sign Up",
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.blue,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
